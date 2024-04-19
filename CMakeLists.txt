@@ -57,8 +57,7 @@ get_filename_component(proto_path "${proto}" PATH)
 set(proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/BackupServer.pb.cc")
 set(proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/BackupServer.pb.h")
 set(grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/BackupServer.grpc.pb.cc")
-set(grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/BackupServer.grpc.pb.h"
-        tests/EncryptionManagerTest.cpp)
+set(grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/BackupServer.grpc.pb.h")
 add_custom_command(
         OUTPUT "${proto_srcs}" "${proto_hdrs}" "${grpc_srcs}" "${grpc_hdrs}"
         COMMAND ${_PROTOBUF_PROTOC}
@@ -95,6 +94,8 @@ add_executable(SeCloud
         src/EncryptionManager.h src/EncryptionManager.cpp
         src/LocalBlockDriver.h src/LocalBlockDriver.cpp
         src/utils.h src/utils.cpp
+        src/PasswordManager.h src/PasswordManager.cpp
+        src/types.h
 )
 target_link_libraries(SeCloud
         Boost::log Boost::log_setup
@@ -132,6 +133,7 @@ add_executable(tests
         src/EncryptionManager.h src/EncryptionManager.cpp
         src/LocalBlockDriver.h src/LocalBlockDriver.cpp
         src/utils.h src/utils.cpp
+        src/PasswordManager.h src/PasswordManager.cpp
 )
 target_link_libraries(tests
         gtest_main

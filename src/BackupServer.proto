@@ -2,16 +2,28 @@ syntax = "proto3";
 
 // The backup service definition.
 service Backup {
+  // Setup the backup service.
+  rpc Setup (SetupRequest) returns (SetupResponse);
+
   // Sends a block of data to be written.
-  rpc WriteBlock (WriteBlockRequest) returns (WriteBlockResponse);
+  rpc WriteBlock (stream WriteBlockRequest) returns (WriteBlockResponse);
 
   // Reads a block of data.
-  rpc ReadBlock (ReadBlockRequest) returns (ReadBlockResponse);
+  rpc ReadBlock (stream ReadBlockRequest) returns (stream ReadBlockResponse);
+}
+
+message SetupRequest {
+  uint64 size = 2; // The size of each block
+}
+
+message SetupResponse {
+  bool success = 1; // Indicates if the setup was successful
+  string message = 2; // Additional information or error message
 }
 
 // The request message containing the data to be written.
 message WriteBlockRequest {
-  uint32 block_no = 1; // The block number to write to
+  uint64 block_no = 1; // The block number to write to
   bytes data = 2; // The data to write
 }
 
@@ -23,7 +35,7 @@ message WriteBlockResponse {
 
 // The request message for reading a block.
 message ReadBlockRequest {
-  uint32 block_no = 1; // The block number to read from
+  uint64 block_no = 1; // The block number to read from
 }
 
 // The response message for read requests.

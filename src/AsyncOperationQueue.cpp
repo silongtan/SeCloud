@@ -1,22 +1,21 @@
-//
-// Created by 陈天予 on 2024/3/24.
-//
-
 #include "AsyncOperationQueue.h"
 
 #include <boost/log/trivial.hpp>
 
-void AsyncOperationQueue::push(std::unique_ptr<WriteOperation> op) {
-    queue.push(std::move(op));
-    size.release();
+void AsyncOperationQueue::push(const std::shared_ptr<WriteOperation>& op) {
+    empty_slots.acquire();
+    queue.push(op);
+    filled_slots.release();
 }
 
-std::optional<std::unique_ptr<WriteOperation>> AsyncOperationQueue::pop() {
-    if (!size.try_acquire_for(std::chrono::seconds(1))) return std::nullopt;
+std::optional<std::shared_ptr<WriteOperation>> AsyncOperationQueue::pop() {
+    if (!filled_slots.try_acquire_for(std::chrono::seconds(1)))
+        return std::nullopt;
     if (queue.empty()) {
         BOOST_LOG_TRIVIAL(fatal) << "nothing in the queue" << std::endl;
     }
     auto op = std::move(queue.front());
     queue.pop();
+    empty_slots.release();
     return op;
 }

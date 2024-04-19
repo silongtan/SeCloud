@@ -1,7 +1,7 @@
 #ifndef CONST_H
 #define CONST_H
 
-constexpr size_t SPSC_SIZE = 1024;
+constexpr size_t SPSC_SIZE = 1024 * 64;
 
 constexpr uint64_t BLOCK_SIZE = 4096;
 
@@ -18,5 +18,11 @@ constexpr char BLOCK_DEV[] = "/dev/nbd0";
 constexpr char BACKUP_SERVER_ADDR[] = "localhost:8080";
 
 constexpr size_t USER_IV_SIZE = 8;
+
+constexpr size_t KEY_SIZE = 32;
+
+constexpr size_t SALT_SIZE = 16;
+
+constexpr char PASSWORD_FILE[] = "password";
 
 #endif

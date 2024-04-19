@@ -9,9 +9,9 @@
 
 #include "consts.h"
 
-EncryptionManager::EncryptionManager(std::vector<uint8_t> key,
+EncryptionManager::EncryptionManager(std::array<uint8_t, KEY_SIZE> key,
                                      std::array<uint8_t, USER_IV_SIZE> iv)
-    : key(std::move(key)), user_iv(iv) {}
+    : key(key), user_iv(iv) {}
 
 std::array<uint8_t, BLOCK_SIZE> EncryptionManager::encrypt_block(
     const std::array<uint8_t, BLOCK_SIZE>& block, uint64_t block_no) {
@@ -115,4 +115,11 @@ std::vector<uint8_t> EncryptionManager::gen_iv_from_block_no(
 
     std::reverse(new_iv.end() - sizeof(augmented_block_no), new_iv.end());
     return new_iv;
+}
+
+EncryptionManager::EncryptionManager(std::string password)
+    : key{}, user_iv({0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07}) {
+    for (int i = 0; i < password.size() && i < key.size(); i++) {
+        key[i] = password[i];
+    }
 }

@@ -9,11 +9,19 @@
 #include "AsyncOperationQueue.h"
 #include "BackupServer.grpc.pb.h"
 
+using grpc::ClientContext;
+using grpc::ClientWriter;
+
 void BackupDaemon::start(const std::shared_ptr<AsyncOperationQueue> &queue,
                          const int img_fd, EncryptionManager &emgr,
                          const std::unique_ptr<Backup::Stub> &client_stub,
                          const StopFlag &stop) {
     BOOST_LOG_TRIVIAL(info) << "Daemon starts!" << std::endl;
+
+    WriteBlockResponse resp;
+    ClientContext context;
+    std::unique_ptr<ClientWriter<WriteBlockRequest>> writer(
+        client_stub->WriteBlock(&context, &resp));
 
     while (!stop.load()) {
         const auto op = queue->pop().value_or(nullptr);
@@ -31,8 +39,6 @@ void BackupDaemon::start(const std::shared_ptr<AsyncOperationQueue> &queue,
         for (auto block_no = op->block_no_start; block_no <= op->block_no_end;
              block_no++) {
             WriteBlockRequest req;
-            WriteBlockResponse resp;
-            grpc::ClientContext context;
             req.set_block_no(block_no);
             std::array<uint8_t, BLOCK_SIZE> buf{};
             if (const auto err =
@@ -48,17 +54,12 @@ void BackupDaemon::start(const std::shared_ptr<AsyncOperationQueue> &queue,
 
             req.set_data(encrypted_buf.data(), BLOCK_SIZE);
 
-            if (const auto status =
-                    client_stub->WriteBlock(&context, req, &resp);
-                !status.ok()) {
+            if (!writer->Write(req)) {
                 BOOST_LOG_TRIVIAL(error)
-                    << "RPC Write Block Failed: " << status.error_message()
-                    << std::endl;
-            } else if (!resp.success()) {
-                BOOST_LOG_TRIVIAL(warning)
-                    << "RPC Write Block Failed: " << resp.message()
-                    << std::endl;
+                    << "Daemon RPC stream closed, failed to write" << std::endl;
+                continue;
             }
         }
     }
+    close(img_fd);
 }

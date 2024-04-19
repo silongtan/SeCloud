@@ -42,16 +42,16 @@ int write(const void *buf, const uint32_t len, uint64_t offset,
     uint64_t block_no_end = (offset + len - 1) / BLOCK_SIZE;
 
     ctx->queue->push(
-        std::make_unique<WriteOperation>(block_no_start, block_no_end));
+        std::make_shared<WriteOperation>(block_no_start, block_no_end));
     return 0;
 }
 
 int flush(void *userdata) {
     BOOST_LOG_TRIVIAL(debug) << "Flush" << std::endl;
 
-    const auto ctx = static_cast<Context *>(userdata);
+    //    const auto ctx = static_cast<Context *>(userdata);
+    //    fsync(ctx->fd);
 
-    fsync(ctx->fd);
     return 0;
 }
 
